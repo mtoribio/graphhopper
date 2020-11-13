@@ -26,6 +26,7 @@ import com.graphhopper.jsprit.core.util.UnassignedJobReasonTracker;
 import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -45,6 +46,19 @@ public class BaseRouteOptimizer {
         RoutePlanReader routePlanReader = new RoutePlanReader(farmyOrders);
         this.depotPoint = depotPoint;
         build(routePlanReader.getIdentifiedPointList(), farmyVehicles);
+    }
+
+    public VehicleRoutingProblemSolution getSolution() {
+        return solution;
+    }
+    public Location getDepotLocation() {
+        return Location.Builder.newInstance().setId(this.depotPoint.getId()).setCoordinate(this.depotPoint.getLocation().getCoordinate()).build();
+    }
+    public IdentifiedPointList getPointList() {
+        return pointList;
+    }
+    public GraphHopperAPI getGraphHopper() {
+        return graphHopper;
     }
 
     public JsonObject getOptimizedRoutes() {
@@ -121,82 +135,37 @@ public class BaseRouteOptimizer {
         return allMap;
     }
 
-    public VehicleRoutingProblemSolution getSolution() {
-        return solution;
-    }
-
-    public Location getDepotLocation() {
-        return Location.Builder.newInstance().setId(this.depotPoint.getId()).setCoordinate(this.depotPoint.getLocation().getCoordinate()).build();
-    }
-
-    public IdentifiedPointList getPointList() {
-        return pointList;
-    }
-
-    public GraphHopperAPI getGraphHopper() {
-        return graphHopper;
-    }
-
-    private void build(IdentifiedPointList pointList, FarmyVehicle[] farmyVehicles) throws Exception {
+    protected void build(IdentifiedPointList pointList, FarmyVehicle[] farmyVehicles) throws Exception {
 
         //        Load the map
         this.pointList = pointList;
 
-        if (this.pointList.size() == 0) {
-//            System.out.println(this.pointList);
-            throw new Exception("Point List is Empty");
-        }
-
-        PointMatrixList pointMatrixList = new PointMatrixList(graphHopper, this.pointList, this.depotPoint);
+        if (this.pointList.size() == 0) throw new Exception("Point List is Empty");
+        if (Arrays.stream(farmyVehicles).count() == 0) throw new Exception("Vehicle List is Empty");
 
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance()
                 .setFleetSize(VehicleRoutingProblem.FleetSize.FINITE);
         /*
          * Adding Vehicles
          */
-
-
         for (FarmyVehicle vehicle : farmyVehicles) {
             vrpBuilder.addVehicle(this.buildVehicle(vehicle));
             System.out.println("isReturnToDepot: " + vehicle.isReturnToDepot());
         }
 
-
-
         /*
          * Adding Services
          */
-
-        VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder = VehicleRoutingTransportCostsMatrix.Builder.newInstance(true);
-
         for (IdentifiedGHPoint3D point : this.pointList) {
             if (point.getTimeWindow() != null)
                 vrpBuilder.addJob(this.buildService(point));
         }
 
-        for (PointMatrix pointMatrix : pointMatrixList) {
-            costMatrixBuilder.addTransportDistance(pointMatrix.getPoint1().getId(), pointMatrix.getPoint2().getId(), pointMatrix.getDistance());
-            costMatrixBuilder.addTransportTime(pointMatrix.getPoint1().getId(), pointMatrix.getPoint2().getId(), pointMatrix.getTime());
-//          Add avg speed in km/h aprox
-            this.speedAvg.add(pointMatrix.getDistance() / (pointMatrix.getTime()));
-        }
+        this.vrtcm = this.buildCostsMatrix(new PointMatrixList(graphHopper, this.pointList, this.depotPoint));
 
-        this.vrtcm = costMatrixBuilder.build();
         vrpBuilder.setRoutingCost(this.vrtcm);
 
-
         VehicleRoutingProblem vrp = vrpBuilder.build();
-
-//      Test Constraint
-
-
-//          Time convert in min
-//          Distance convert in km
-//        StateManager stateManager = new StateManager(vrp);
-//        ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
-//        constraintManager.addConstraint(new FarmyWorkingHoursConstraint(54000 + 28800, stateManager, this.vrtcm), ConstraintManager.Priority.HIGH);
-
-//      End test constraint
 
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp)
 //                .setStateAndConstraintManager(stateManager, constraintManager)
@@ -211,29 +180,10 @@ public class BaseRouteOptimizer {
 
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         this.solution = Solutions.bestOf(solutions);
-
-
-//        new Plotter(vrp).plot("./output/main2_problem2.png", "p01");
-//        new Plotter(vrp, Solutions.bestOf(solutions)).plot("./output/main2_sol2.png", "po");
-//        new GraphStreamViewer(vrp, Solutions.bestOf(solutions)).labelWith(GraphStreamViewer.Label.ID).setRenderDelay(200).display();
-//        SolutionPrinter.print(vrp, Solutions.bestOf(solutions), SolutionPrinter.Print.VERBOSE);
-
-        this.analyser = new SolutionAnalyser(vrp, Solutions.bestOf(solutions), vrp.getTransportCosts());
-        System.out.println("tp_distance: " + analyser.getDistance());
-        System.out.println("tp_time: " + analyser.getTransportTime());
-        System.out.println("waiting: " + analyser.getWaitingTime());
-        System.out.println("service: " + analyser.getServiceTime());
-        System.out.println("#picks: " + analyser.getNumberOfPickups());
-        System.out.println("#deliveries: " + analyser.getNumberOfDeliveries());
-        System.out.println("#load_delivered: " + analyser.getLoadDelivered());
-        System.out.println("#capacity_violation: " + analyser.getCapacityViolation());
-        System.out.println("#time_window_violation: " + analyser.getTimeWindowViolation());
-        System.out.println("#number_of_deliveries: " + analyser.getNumberOfDeliveriesAtEnd());
-        System.out.println("#unnasigned_jobs: " + this.solution.getUnassignedJobs().size());
+        this.analyser = printAnalyzer(vrp, this.solution);
 
     }
-
-    private VehicleImpl buildVehicle(FarmyVehicle vehicle) {
+    protected VehicleImpl buildVehicle(FarmyVehicle vehicle) {
         VehicleType type = VehicleTypeImpl.Builder.newInstance(String.format("[TYPE] #%s", vehicle.getId()))
                 .setFixedCost(vehicle.getFixedCosts()) //Fixe Bedienzeit
                 .setCostPerDistance(vehicle.getCostsPerDistance())
@@ -253,7 +203,7 @@ public class BaseRouteOptimizer {
                 .setType(type)
                 .build();
     }
-    private Service buildService(IdentifiedGHPoint3D point) {
+    protected Service buildService(IdentifiedGHPoint3D point) {
         return Delivery.Builder.newInstance(point.getId())
                 .addSizeDimension(0, (int) point.getWeight())
                 .setLocation(Location.Builder.newInstance().setId(point.getId()).setCoordinate(
@@ -262,6 +212,34 @@ public class BaseRouteOptimizer {
                 .setTimeWindow(point.getTimeWindow())
                 .setServiceTime(point.getServiceTime())
                 .build();
+    }
+    protected VehicleRoutingTransportCostsMatrix buildCostsMatrix(PointMatrixList pointMatrixList) {
+        VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder = VehicleRoutingTransportCostsMatrix.Builder.newInstance(true);
+
+        for (PointMatrix pointMatrix : pointMatrixList) {
+            costMatrixBuilder.addTransportDistance(pointMatrix.getPoint1().getId(), pointMatrix.getPoint2().getId(), pointMatrix.getDistance());
+            costMatrixBuilder.addTransportTime(pointMatrix.getPoint1().getId(), pointMatrix.getPoint2().getId(), pointMatrix.getTime());
+//          Add avg speed in km/h aprox
+            this.speedAvg.add(pointMatrix.getDistance() / (pointMatrix.getTime()));
+        }
+
+        return costMatrixBuilder.build();
+    }
+    protected SolutionAnalyser printAnalyzer(VehicleRoutingProblem vrp, VehicleRoutingProblemSolution solution) {
+        SolutionAnalyser analyser = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
+        System.out.println("tp_distance: " + analyser.getDistance());
+        System.out.println("tp_time: " + analyser.getTransportTime());
+        System.out.println("waiting: " + analyser.getWaitingTime());
+        System.out.println("service: " + analyser.getServiceTime());
+        System.out.println("#picks: " + analyser.getNumberOfPickups());
+        System.out.println("#deliveries: " + analyser.getNumberOfDeliveries());
+        System.out.println("#load_delivered: " + analyser.getLoadDelivered());
+        System.out.println("#capacity_violation: " + analyser.getCapacityViolation());
+        System.out.println("#time_window_violation: " + analyser.getTimeWindowViolation());
+        System.out.println("#number_of_deliveries: " + analyser.getNumberOfDeliveriesAtEnd());
+        System.out.println("#unnasigned_jobs: " + this.solution.getUnassignedJobs().size());
+
+        return analyser;
     }
 
 }
