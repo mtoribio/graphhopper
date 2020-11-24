@@ -80,9 +80,9 @@ public class OptimizeRouteResource {
             depotPoint = RoutePlanReader.depotPoint();
         }
 
-        RouteOptimizer routeOptimizer;
+        SingleRouteOptimizer routeOptimizer;
         try {
-            routeOptimizer = new RouteOptimizer(this.graphHopperAPI, farmyOrders, farmyVehicles, depotPoint);
+            routeOptimizer = new SingleRouteOptimizer(this.graphHopperAPI, farmyOrders, farmyVehicles, depotPoint);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();

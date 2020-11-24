@@ -240,7 +240,7 @@ public class SingleRouteOptimizer {
                 .setCostPerTransportTime(vehicle.getCostsPerTransportTime())
                 .setCostPerServiceTime(vehicle.getCostsPerServiceTime())
                 .setCostPerWaitingTime(vehicle.getCostPerWaitingTime())
-//                .addCapacityDimension(0, vehicle.getCapacity())
+                .addCapacityDimension(0, 99999999)
                 .setMaxVelocity(vehicle.isPlus() ? 50.0/3.6 : 80.0/3.6) // ~50km/h // ~80km/h // 1 ~= 3.85
                 .build();
 
@@ -255,7 +255,7 @@ public class SingleRouteOptimizer {
     }
     private Service buildService(IdentifiedGHPoint3D point) {
         return Delivery.Builder.newInstance(point.getId())
-//                .addSizeDimension(0, (int) point.getWeight())
+                .addSizeDimension(0, (int) point.getWeight())
                 .setLocation(Location.Builder.newInstance().setId(point.getId()).setCoordinate(
                         Coordinate.newInstance(point.getLat(), point.getLon())).build()
                 )

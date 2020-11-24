@@ -51,9 +51,7 @@ public class BaseRouteOptimizer {
     public VehicleRoutingProblemSolution getSolution() {
         return solution;
     }
-    public Location getDepotLocation() {
-        return Location.Builder.newInstance().setId(this.depotPoint.getId()).setCoordinate(this.depotPoint.getLocation().getCoordinate()).build();
-    }
+    public Location getDepotLocation() { return Location.Builder.newInstance().setId(this.depotPoint.getId()).setCoordinate(this.depotPoint.getLocation().getCoordinate()).build(); }
     public IdentifiedPointList getPointList() {
         return pointList;
     }
