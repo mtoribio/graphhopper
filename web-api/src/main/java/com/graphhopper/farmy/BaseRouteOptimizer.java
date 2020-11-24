@@ -32,14 +32,14 @@ import java.util.List;
 
 public class BaseRouteOptimizer {
 
-    private VehicleRoutingProblemSolution solution;
-    private IdentifiedPointList pointList;
-    private final GraphHopperAPI graphHopper;
-    private final IdentifiedGHPoint3D depotPoint;
-    private UnassignedJobReasonTracker reasonTracker;
-    private SolutionAnalyser analyser;
-    private VehicleRoutingTransportCostsMatrix vrtcm;
-    private final List<Double> speedAvg = new ArrayList<>();
+    protected VehicleRoutingProblemSolution solution;
+    protected IdentifiedPointList pointList;
+    protected final GraphHopperAPI graphHopper;
+    protected final IdentifiedGHPoint3D depotPoint;
+    protected UnassignedJobReasonTracker reasonTracker;
+    protected SolutionAnalyser analyser;
+    protected VehicleRoutingTransportCostsMatrix vrtcm;
+    protected final List<Double> speedAvg = new ArrayList<>();
 
     public BaseRouteOptimizer(GraphHopperAPI graphHopper, FarmyOrder[] farmyOrders, FarmyVehicle[] farmyVehicles, IdentifiedGHPoint3D depotPoint) throws Exception {
         this.graphHopper = graphHopper;
@@ -86,7 +86,7 @@ public class BaseRouteOptimizer {
                 idPoint.setPlannedTime(activity.getArrTime()); // set arrtime from activity
                 idPoint.setEarliestOperationStartTime(activity.getTheoreticalEarliestOperationStartTime());
                 idPoint.setLatestOperationStartTime(activity.getTheoreticalLatestOperationStartTime());
-                waypoints.add(idPoint.toJsonObject()); // add the point to waypoints
+                if(!idPoint.getId().equals("Depot")) waypoints.add(idPoint.toJsonObject()); // add the point to waypoints
 //              Calc for distance
 
                 if (lastPoint != null) {
