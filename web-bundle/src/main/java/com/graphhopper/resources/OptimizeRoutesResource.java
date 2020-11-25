@@ -79,7 +79,7 @@ public class OptimizeRoutesResource {
 
         IdentifiedGHPoint3D depotPoint;
         String depotPointStr = jsonObject.get("startLocation").toString();
-        if (depotPointStr.isEmpty()) {
+        if (!depotPointStr.isEmpty()) {
             depotPoint = new IdentifiedGHPoint3D(mapper.readValue(depotPointStr, ArrayList.class), "Depot");
         } else {
             depotPoint = RoutePlanReader.depotPoint();
