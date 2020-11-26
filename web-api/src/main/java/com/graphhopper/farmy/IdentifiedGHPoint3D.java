@@ -11,15 +11,16 @@ import java.util.HashMap;
 
 public class IdentifiedGHPoint3D extends GHPoint3D {
 
-    private String id;
-    private String direction;
-    private double serviceTime;
-    private TimeWindow timeWindow;
-    private double plannedTime;
-    private double weight;
-    private double distance;
-    private double earliestOperationStartTime;
-    private double latestOperationStartTime;
+    protected String id;
+    protected String direction;
+    protected double serviceTime;
+    protected TimeWindow timeWindow;
+    protected double plannedTime;
+    protected double endTime;
+    protected double weight;
+    protected double distance;
+    protected double earliestOperationStartTime;
+    protected double latestOperationStartTime;
 
     public IdentifiedGHPoint3D(double lat, double lon, double elevation, String id) {
         super(lat, lon, elevation);
@@ -107,6 +108,14 @@ public class IdentifiedGHPoint3D extends GHPoint3D {
         return this;
     }
 
+    public double getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(double endTime) {
+        this.endTime = endTime;
+    }
+
     public double getWeight() {
         return weight;
     }
@@ -156,6 +165,7 @@ public class IdentifiedGHPoint3D extends GHPoint3D {
         jsonObject.addProperty("serviceTime", String.valueOf(getServiceTime()));
         jsonObject.addProperty("direction", getDirection());
         jsonObject.addProperty("plannedTime", String.valueOf(getPlannedTime()));
+        jsonObject.addProperty("plannedEndTime", String.valueOf(getEndTime()));
         jsonObject.addProperty("weight",  String.valueOf(getWeight()));
         jsonObject.addProperty("distance", String.valueOf(getDistance()));
         jsonObject.addProperty("earliestOperationStartTime", String.valueOf(getEarliestOperationStartTime()));

@@ -80,24 +80,25 @@ public class BaseRouteOptimizer {
                 } catch (Exception e) {
                     service = ((PickupService) activity).getJob();
                 }
-
-                // Get Job as DeliveryService
-                IdentifiedGHPoint3D idPoint = this.pointList.find(service.getId()); // Find point by service id
-                idPoint.setPlannedTime(activity.getArrTime()); // set arrtime from activity
-                idPoint.setEarliestOperationStartTime(activity.getTheoreticalEarliestOperationStartTime());
-                idPoint.setLatestOperationStartTime(activity.getTheoreticalLatestOperationStartTime());
-                if(!idPoint.getId().equals("Depot")) waypoints.add(idPoint.toJsonObject()); // add the point to waypoints
+                if (!service.getId().equals("Depot")) {
+                    // Get Job as DeliveryService
+                    IdentifiedGHPoint3D idPoint = this.pointList.find(service.getId()); // Find point by service id
+                    idPoint.setPlannedTime(activity.getArrTime()); // set arrtime from activity
+                    idPoint.setEndTime(activity.getEndTime()); // set arrtime from activity
+                    idPoint.setEarliestOperationStartTime(activity.getTheoreticalEarliestOperationStartTime());
+                    idPoint.setLatestOperationStartTime(activity.getTheoreticalLatestOperationStartTime());
+                    waypoints.add(idPoint.toJsonObject()); // add the point to waypoints
 //              Calc for distance
 
-                if (lastPoint != null) {
-                    distance = this.vrtcm.getDistance(idPoint.getId(), lastPoint.getId());
-                    idPoint.setDistance(distance);
+                    if (lastPoint != null) {
+                        distance = this.vrtcm.getDistance(idPoint.getId(), lastPoint.getId());
+                        idPoint.setDistance(distance);
 
-                    System.out.printf("Point: %s \n Distance: %s \n Time: %s%n", idPoint.getId(), distance, activity.getArrTime());
+                        System.out.printf("Point: %s \n Distance: %s \n Time: %s%n", idPoint.getId(), distance, activity.getArrTime());
+                    }
+                    if (firstPoint == null) firstPoint = idPoint;
+                    lastPoint = idPoint;
                 }
-                if (firstPoint == null) firstPoint = idPoint;
-                lastPoint = idPoint;
-
             }
 
 
@@ -164,6 +165,11 @@ public class BaseRouteOptimizer {
         vrpBuilder.setRoutingCost(this.vrtcm);
 
         VehicleRoutingProblem vrp = vrpBuilder.build();
+
+//        StateManager stateManager = new StateManager(vrp);
+//        ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
+//        constraintManager.addLoadConstraint();
+//        constraintManager.addTimeWindowConstraint();
 
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp)
 //                .setStateAndConstraintManager(stateManager, constraintManager)
