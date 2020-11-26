@@ -149,7 +149,6 @@ public class BaseRouteOptimizer {
          */
         for (FarmyVehicle vehicle : farmyVehicles) {
             vrpBuilder.addVehicle(this.buildVehicle(vehicle));
-            System.out.println("isReturnToDepot: " + vehicle.isReturnToDepot());
         }
 
         /*
