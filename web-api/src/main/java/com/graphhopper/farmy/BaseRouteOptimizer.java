@@ -174,7 +174,7 @@ public class BaseRouteOptimizer {
         this.reasonTracker = new UnassignedJobReasonTracker();
 
         vra.addListener(this.reasonTracker);
-        vra.setMaxIterations(64); // Fast iterations for testing
+//        vra.setMaxIterations(64); // Fast iterations for testing
 
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         this.solution = Solutions.bestOf(solutions);
