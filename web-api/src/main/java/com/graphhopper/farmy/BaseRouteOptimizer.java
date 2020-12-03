@@ -87,7 +87,6 @@ public class BaseRouteOptimizer {
                     idPoint.setEndTime(activity.getEndTime()); // set arrtime from activity
                     idPoint.setEarliestOperationStartTime(activity.getTheoreticalEarliestOperationStartTime());
                     idPoint.setLatestOperationStartTime(activity.getTheoreticalLatestOperationStartTime());
-                    waypoints.add(idPoint.toJsonObject()); // add the point to waypoints
 //              Calc for distance
 
                     if (lastPoint != null) {
@@ -96,6 +95,8 @@ public class BaseRouteOptimizer {
 
                         System.out.printf("Point: %s \n Distance: %s \n Time: %s%n", idPoint.getId(), distance, activity.getArrTime());
                     }
+                    
+                    waypoints.add(idPoint.toJsonObject()); // add the point to waypoints
                     if (firstPoint == null) firstPoint = idPoint;
                     lastPoint = idPoint;
                 }

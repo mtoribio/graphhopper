@@ -59,7 +59,7 @@ public class PointMatrixList extends AbstractList<PointMatrix> {
         for(IdentifiedGHPoint3D point: this.pointList) {
             int index2 = 0;
             for (IdentifiedGHPoint3D point2: this.pointList) {
-//                if (point.equals(point2) || point.getId().equals(point2.getId())) continue;
+                if (point.getId().equals(point2.getId())) continue;
                 GHResponse response = this.graphHopper.route(new GHRequest(point, point2)
                         .setProfile("car")
                         .setLocale(Locale.GERMANY));
