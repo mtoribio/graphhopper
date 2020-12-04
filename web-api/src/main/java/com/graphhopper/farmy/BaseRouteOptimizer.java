@@ -66,14 +66,14 @@ public class BaseRouteOptimizer {
 
         for (VehicleRoute route : solution.getRoutes()) {
             JsonObject vehicleHashMap = new JsonObject();
-            IdentifiedGHPoint3D firstPoint = null;
-            IdentifiedGHPoint3D lastPoint = null;
+            IdentifiedGHPoint3D prevPoint = this.depotPoint;
             JsonArray waypoints = new JsonArray();
+            double accDistance = 0;
 
             TourActivity[] tourActivities = route.getActivities().toArray(new TourActivity[0]);
 
             for (TourActivity activity : tourActivities) {
-                double distance;
+                double distance = 0;
                 Job service;
                 try {
                     service = ((DeliverService) activity).getJob();
@@ -87,18 +87,18 @@ public class BaseRouteOptimizer {
                     idPoint.setEndTime(activity.getEndTime()); // set arrtime from activity
                     idPoint.setEarliestOperationStartTime(activity.getTheoreticalEarliestOperationStartTime());
                     idPoint.setLatestOperationStartTime(activity.getTheoreticalLatestOperationStartTime());
-//              Calc for distance
 
-                    if (lastPoint != null) {
-                        distance = this.vrtcm.getDistance(idPoint.getId(), lastPoint.getId());
-                        idPoint.setDistance(distance);
+                    // Calc for distance
 
-                        System.out.printf("Point: %s \n Distance: %s \n Time: %s%n", idPoint.getId(), distance, activity.getArrTime());
-                    }
-                    
+                    distance = this.vrtcm.getDistance(prevPoint.getId(), idPoint.getId());
+
+                    accDistance += distance;
+                    idPoint.setDistance(accDistance);
+
                     waypoints.add(idPoint.toJsonObject()); // add the point to waypoints
-                    if (firstPoint == null) firstPoint = idPoint;
-                    lastPoint = idPoint;
+                    prevPoint = idPoint;
+
+                    System.out.printf("Point: %s \n Distance: %s \n Time: %s%n", idPoint.getId(), distance, activity.getArrTime());
                 }
             }
 
