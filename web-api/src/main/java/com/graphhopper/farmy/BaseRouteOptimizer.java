@@ -111,6 +111,8 @@ public class BaseRouteOptimizer {
             vehicleHashMap.addProperty("waitingTime", this.analyser.getWaitingTime(route));
             vehicleHashMap.addProperty("transportTime", this.analyser.getTransportTime(route));
             vehicleHashMap.addProperty("cost", this.analyser.getVariableTransportCosts(route) + this.analyser.getFixedCosts(route));
+            vehicleHashMap.addProperty("depotLeaveTime", route.getStart().getEndTime());
+            vehicleHashMap.addProperty("depotReturnTime", route.getEnd().getArrTime());
 
             optimizedRoutesMap.add(route.getVehicle().getId(), vehicleHashMap);
         }
