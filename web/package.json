@@ -9,7 +9,7 @@
     "watch": "watchify src/main/resources/assets/js/main-template.js -o target/classes/assets/js/main.js --debug --verbose",
     "bundle": "browserify src/main/resources/assets/js/main-template.js -o target/classes/assets/js/main.js",
     "bundleDebug": "browserify src/main/resources/assets/js/main-template.js --debug -o target/classes/assets/js/main.js",
-    "bundleProduction": "browserify -g uglifyify src/main/resources/assets/js/main-template.js -o target/classes/assets/js/main.js",
+    "bundleProduction": "",
     "test": "JASMINE_CONFIG_PATH=src/test/resources/assets/spec/jasmine.json jasmine",
     "lint": "jshint src/main/resources/assets/js/"
   },
