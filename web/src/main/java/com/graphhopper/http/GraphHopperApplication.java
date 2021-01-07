@@ -24,6 +24,7 @@ import io.dropwizard.Application;
 import io.dropwizard.bundles.assets.ConfiguredAssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.glassfish.jersey.client.ClientProperties;
 
 import javax.servlet.DispatcherType;
 import java.util.EnumSet;
@@ -52,6 +53,8 @@ public final class GraphHopperApplication extends Application<GraphHopperServerC
     public void run(GraphHopperServerConfiguration configuration, Environment environment) {
         environment.jersey().register(new RootResource());
         environment.jersey().register(NavigateResource.class);
+        environment.jersey().property(ClientProperties.CONNECT_TIMEOUT, 300000); // 5min
+        environment.jersey().property(ClientProperties.READ_TIMEOUT, 300000);
         environment.servlets().addFilter("cors", CORSFilter.class).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "*");
     }
 }
