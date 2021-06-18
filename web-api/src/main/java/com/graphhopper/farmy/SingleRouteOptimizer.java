@@ -34,8 +34,6 @@ public class SingleRouteOptimizer extends BaseRouteOptimizer {
                 .setLatestArrival(vehicle.getLatestArrival())
                 .setType(type)
                 .build();
-
-
     }
 
     protected Service buildService(IdentifiedGHPoint3D point) {

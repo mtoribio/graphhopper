@@ -6,9 +6,12 @@ import com.google.gson.JsonParser;
 import com.graphhopper.GraphHopperAPI;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
+import com.graphhopper.jsprit.core.algorithm.state.StateId;
+import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.analysis.SolutionAnalyser;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
+import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.job.Delivery;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.job.Service;
@@ -168,13 +171,16 @@ public class BaseRouteOptimizer {
 
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
-//        StateManager stateManager = new StateManager(vrp);
-//        ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
-//        constraintManager.addLoadConstraint();
-//        constraintManager.addTimeWindowConstraint();
+        StateManager stateManager = new StateManager(vrp);
+
+        StateId distanceStateId = stateManager.createStateId("distance");
+        stateManager.addStateUpdater(new DistanceUpdater(distanceStateId, stateManager, this.vrtcm));
+
+        ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
+        constraintManager.addConstraint(new DistanceConstraint(farmyVehicles, distanceStateId, stateManager, this.vrtcm), ConstraintManager.Priority.CRITICAL);
 
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp)
-//                .setStateAndConstraintManager(stateManager, constraintManager)
+                .setStateAndConstraintManager(stateManager, constraintManager)
                 .setProperty(Jsprit.Parameter.FAST_REGRET, "true")
                 .setProperty(Jsprit.Parameter.THREADS, "8")
                 .buildAlgorithm();

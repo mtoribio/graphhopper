@@ -51,6 +51,8 @@ public class FarmyVehicle {
     private double earliestDeparture;
     @JsonProperty("latestArrival")
     private double latestArrival;
+    @JsonProperty("maxDistance")
+    private double maxDistance;
 
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -143,4 +145,12 @@ public class FarmyVehicle {
     public double getLatestArrival() { return latestArrival; }
     @JsonAnySetter
     public void setLatestArrival(double latestArrival) { this.latestArrival = latestArrival; }
+    @JsonAnySetter
+    public double getMaxDistance() {
+        return maxDistance;
+    }
+
+    public void setMaxDistance(double maxDistance) {
+        this.maxDistance = maxDistance;
+    }
 }
